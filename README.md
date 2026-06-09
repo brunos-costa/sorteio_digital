@@ -1,5 +1,6 @@
 # Sorteio Digital - Sistema de Sorteio com Equipes e Históricos Independentes
-
+## Link do site
+<a href="https://brunos-costa.github.io/sorteio_digital/">https://brunos-costa.github.io/sorteio_digital/</a>
 ## Sobre o Projeto
 
 O **Sorteio Digital** é uma aplicação web interativa desenvolvida com **Material Design** que permite realizar sorteios de nomes e números de forma intuitiva e visualmente agradável. O sistema oferece recursos avançados como organização em equipes, controle de repetições, animações de contagem regressiva e históricos completamente independentes para cada modalidade.
