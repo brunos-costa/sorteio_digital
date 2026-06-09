@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Bruno Costa">
+    <title>Sorteio Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6200ee;
+            --primary-variant: #3700b3;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --error: #b00020;
+            --on-primary: #ffffff;
+            --text-high: rgba(0,0,0,0.87);
+            --text-medium: rgba(0,0,0,0.60);
+            --text-disabled: rgba(0,0,0,0.38);
+            --e1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --e2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+            --e4: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--background);
+            color: var(--text-high);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 16px;
+        }
+        .main-card {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--e4);
+            width: 100%;
+            max-width: 720px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .app-bar {
+            background: var(--primary);
+            color: var(--on-primary);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .app-bar h1 { font-size: 20px; font-weight: 500; }
+
+        /* ---- Tabs ---- */
+        .tabs-container {
+            display: flex;
+            border-bottom: 1px solid rgba(0,0,0,0.12);
+        }
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-medium);
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            position: relative;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+        }
+        .tab:hover { color: var(--primary); }
+        .tab.active { color: var(--primary); }
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+        .tab-content { display: none; padding: 24px; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---- Inputs ---- */
+        .input-group { margin-bottom: 16px; }
+        .input-group label {
+            display: block;
+            color: var(--text-medium);
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .material-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,0.42);
+            background: rgba(0,0,0,0.04);
+            border-radius: 4px 4px 0 0;
+            transition: border-color 0.3s, background 0.3s;
+            font-family: 'Roboto', sans-serif;
+        }
+        .material-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+            background: rgba(98,0,238,0.04);
+        }
+        textarea.material-input { min-height: 110px; resize: vertical; }
+
+        .number-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .number-fields .input-group input { text-align: center; font-size: 22px; font-weight: 500; }
+
+        /* ---- Settings panel ---- */
+        .settings-panel {
+            background: rgba(0,0,0,0.02);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        .checkbox-material {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        .checkbox-material input { display: none; }
+        .checkbox-material .check-icon {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(0,0,0,0.54);
+            border-radius: 2px;
+            margin-right: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .checkbox-material input:checked + .check-icon { background: var(--primary); border-color: var(--primary); }
+        .checkbox-material input:checked + .check-icon::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+        .checkbox-material .label-text { font-size: 14px; color: var(--text-high); }
+        .sub-hint {
+            display: block;
+            margin-left: 32px;
+            font-size: 12px;
+            color: var(--text-medium);
+            margin-top: -6px;
+            margin-bottom: 10px;
+        }
+
+        .timer-config { margin-left: 32px; margin-top: 8px; display: none; }
+        .timer-config.show { display: block; }
+        .timer-config input {
+            width: 60px; padding: 8px; text-align: center;
+            border: 1px solid var(--primary); border-radius: 4px; font-size: 14px;
+        }
+        .timer-config label { font-size: 12px; color: var(--text-medium); }
+
+        /* ---- Teams config ---- */
+        .teams-config { margin-left: 32px; margin-top: 8px; display: none; }
+        .teams-config.show { display: block; }
+        .teams-qty-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .teams-qty-row label { font-size: 13px; color: var(--text-medium); white-space: nowrap; }
+        .teams-qty-row input {
+            width: 60px; padding: 8px; text-align: center;
+            border: 1px solid var(--primary); border-radius: 4px; font-size: 14px;
+        }
+        .teams-qty-row button {
+            padding: 8px 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .team-name-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .team-name-input span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .team-name-input input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: Roboto, sans-serif;
+        }
+
+        /* ---- Draw button ---- */
+        .btn-draw {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: var(--on-primary);
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: var(--e2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .btn-draw:hover { background: var(--primary-variant); box-shadow: var(--e4); }
+        .btn-draw:disabled { background: rgba(0,0,0,0.26); cursor: not-allowed; box-shadow: none; }
+
+        /* ---- Result ---- */
+        .result-container {
+            margin-top: 28px;
+            padding: 28px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 12px;
+            border: 2px dashed var(--primary);
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+        .result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-medium); }
+        .result-value {
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--primary);
+            word-break: break-word;
+            line-height: 1.1;
+        }
+        .result-value.animate { animation: popIn 0.45s ease; }
+        @keyframes popIn {
+            0%   { transform: scale(0.5); opacity: 0; }
+            55%  { transform: scale(1.12); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ---- Assign bar (para equipes) ---- */
+        .assign-bar {
+            display: none;
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: #f3f0ff;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .assign-bar.visible { display: flex; }
+        .assign-bar .assign-label { font-size: 13px; color: var(--text-medium); flex-shrink: 0; }
+        .assign-bar .team-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+        .team-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .team-chip:hover { transform: translateY(-2px); box-shadow: var(--e2); }
+
+        /* ---- Teams board ---- */
+        .teams-board { margin-top: 20px; display: none; }
+        .teams-board.visible { display: block; }
+        .teams-board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .teams-board-header h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-reset-teams {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .team-card { border-radius: 10px; overflow: hidden; box-shadow: var(--e1); background: white; }
+        .team-card-header {
+            padding: 10px 14px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .team-card-header .team-count {
+            background: rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 12px;
+        }
+        .team-card-body { padding: 10px 14px; background: white; min-height: 50px; }
+        .team-member {
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            color: var(--text-high);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: slideIn 0.3s ease;
+        }
+        .team-member:last-child { border-bottom: none; }
+        .team-member::before { content: '·'; font-weight: bold; color: #999; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .team-empty { font-size: 12px; color: var(--text-disabled); font-style: italic; padding: 4px 0; }
+
+        /* ---- History (independentes) ---- */
+        .history-container {
+            margin-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.10);
+            padding-top: 16px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .history-header h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-clear {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .history-list { max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.02); border-radius: 8px; }
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            font-size: 13px;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-item .num {
+            width: 22px; height: 22px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .history-item .val { flex: 1; font-weight: 500; word-break: break-word; }
+        .history-item .team-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .empty-history { padding: 20px; text-align: center; color: var(--text-disabled); font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="main-card">
+    <div class="app-bar">
+        <span class="material-icons">casino</span>
+        <h1>Sorteio Digital</h1>
+    </div>
+
+    <div class="tabs-container">
+        <button class="tab active" onclick="switchTab('nomes', this)">
+            <span class="material-icons" style="vertical-align:middle;font-size:17px;">people</span>
+            Nomes
+        </button>
+        <button class="tab" onclick="switchTab('numeros', this)">
+            <span class="material-icons" style="vertical-align:middle;font-size:17px;">tag</span>
+            Números
+        </button>
+    </div>
+
+    <!-- ===== ABA NOMES ===== -->
+    <div id="content-nomes" class="tab-content active">
+        <div class="input-group">
+            <label>PARTICIPANTES (um por linha ou separados por vírgula)</label>
+            <textarea id="entries-nomes" class="material-input" placeholder="Ex: João&#10;Maria&#10;José&#10;Ana"></textarea>
+        </div>
+
+        <div class="settings-panel">
+            <label class="checkbox-material">
+                <input type="checkbox" id="unique-nomes">
+                <span class="check-icon"></span>
+                <span class="label-text">Não sortear nomes repetidos</span>
+            </label>
+            <small class="sub-hint">Nomes já sorteados são removidos automaticamente.</small>
+
+            <label class="checkbox-material">
+                <input type="checkbox" id="timer-nomes">
+                <span class="check-icon"></span>
+                <span class="label-text">Ativar contagem regressiva</span>
+            </label>
+            <div id="timer-config-nomes" class="timer-config">
+                <label>Duração (segundos):</label>
+                <input type="number" id="timer-value-nomes" value="5" min="1">
+            </div>
+
+            <label class="checkbox-material" style="margin-top:14px;">
+                <input type="checkbox" id="teams-enable">
+                <span class="check-icon"></span>
+                <span class="label-text">Organizar em equipes</span>
+            </label>
+            <small class="sub-hint">Após cada sorteio, escolha em qual equipe o nome vai entrar.</small>
+            <div id="teams-config" class="teams-config">
+                <div class="teams-qty-row">
+                    <label>Nº de equipes:</label>
+                    <input type="number" id="teams-qty" value="2" min="2" max="8">
+                    <button onclick="applyTeams()">Aplicar</button>
+                </div>
+                <div id="teams-names-inputs"></div>
+            </div>
+        </div>
+
+        <button class="btn-draw" onclick="drawNames()">
+            <span class="material-icons">shuffle</span>
+            Sortear Nome
+        </button>
+
+        <!-- Resultado Nomes -->
+        <div class="result-container">
+            <div class="result-label">Resultado</div>
+            <div id="result-nomes" class="result-value">--</div>
+        </div>
+
+        <!-- Assign bar -->
+        <div id="assign-bar" class="assign-bar">
+            <span class="assign-label">Adicionar à equipe:</span>
+            <div id="team-chips" class="team-chips"></div>
+        </div>
+
+        <!-- Teams board -->
+        <div id="teams-board" class="teams-board">
+            <div class="teams-board-header">
+                <h3>Equipes</h3>
+                <button class="btn-reset-teams" onclick="resetTeams()">Resetar equipes</button>
+            </div>
+            <div id="teams-grid" class="teams-grid"></div>
+        </div>
+
+        <!-- Histórico de Nomes (INDEPENDENTE) -->
+        <div class="history-container">
+            <div class="history-header">
+                <h3>📋 Histórico de Nomes</h3>
+                <button class="btn-clear" onclick="clearNamesHistory()">Limpar histórico</button>
+            </div>
+            <div id="history-nomes-list" class="history-list">
+                <div class="empty-history">Nenhum nome sorteado ainda</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ABA NÚMEROS ===== -->
+    <div id="content-numeros" class="tab-content">
+        <div class="number-fields">
+            <div class="input-group">
+                <label>DE</label>
+                <input type="number" id="num-min" class="material-input" value="1" min="0">
+            </div>
+            <div class="input-group">
+                <label>ATÉ</label>
+                <input type="number" id="num-max" class="material-input" value="100">
+            </div>
+            <div class="input-group">
+                <label>QUANTOS?</label>
+                <input type="number" id="num-qty" class="material-input" value="1" min="1" max="20">
+            </div>
+        </div>
+
+        <div class="settings-panel">
+            <label class="checkbox-material">
+                <input type="checkbox" id="unique-numeros" checked>
+                <span class="check-icon"></span>
+                <span class="label-text">Não sortear números repetidos</span>
+            </label>
+            <small class="sub-hint">Garante que os números sorteados sejam únicos.</small>
+
+            <label class="checkbox-material" style="margin-top:14px;">
+                <input type="checkbox" id="timer-numeros">
+                <span class="check-icon"></span>
+                <span class="label-text">Ativar contagem regressiva</span>
+            </label>
+            <div id="timer-config-numeros" class="timer-config">
+                <label>Duração (segundos):</label>
+                <input type="number" id="timer-value-numeros" value="5" min="1">
+            </div>
+        </div>
+
+        <button class="btn-draw" onclick="drawNumbers()">
+            <span class="material-icons">shuffle</span>
+            Sortear Números
+        </button>
+
+        <!-- Resultado Números -->
+        <div class="result-container">
+            <div class="result-label">Resultado</div>
+            <div id="result-numeros" class="result-value">--</div>
+        </div>
+
+        <!-- Histórico de Números (INDEPENDENTE) -->
+        <div class="history-container">
+            <div class="history-header">
+                <h3>🔢 Histórico de Números</h3>
+                <button class="btn-clear" onclick="clearNumbersHistory()">Limpar histórico</button>
+            </div>
+            <div id="history-numeros-list" class="history-list">
+                <div class="empty-history">Nenhum número sorteado ainda</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== CORES DAS EQUIPES ====================
+    const TEAM_COLORS = ['#6200ee','#00897b','#e53935','#f57c00','#1e88e5','#8e24aa','#43a047','#d81b60'];
+
+    // ========== ESTADO NOMES (com equipes e histórico independente) ==========
+    let namesHistoryList = [];      // { value, team, teamName, teamColor }
+    let usedNamesSet = [];          // Nomes já utilizados (modo sem repetição)
+    let originalNamesArray = [];
+    let teams = [];                 // Estrutura das equipes
+    let lastDrawnName = null;
+    
+    // ========== ESTADO NÚMEROS (independente) ==========
+    let numbersHistoryList = [];     // números sorteados (cada entrada pode ser número único ou array)
+    let usedNumbersArray = [];       // números já utilizados globalmente (modo unique)
+    
+    // ========== CONTROLE DE ANIMAÇÃO ==========
+    let isDrawingNames = false;
+    let isDrawingNumbers = false;
+    
+    // ========== ELEMENTOS DOM ==========
+    const resultNomesDiv = document.getElementById('result-nomes');
+    const resultNumerosDiv = document.getElementById('result-numeros');
+    const historyNomesContainer = document.getElementById('history-nomes-list');
+    const historyNumerosContainer = document.getElementById('history-numeros-list');
+    const assignBar = document.getElementById('assign-bar');
+    const teamChips = document.getElementById('team-chips');
+    const teamsBoard = document.getElementById('teams-board');
+    const teamsGrid = document.getElementById('teams-grid');
+    
+    // ========== FUNÇÕES DE EQUIPES ==========
+    function applyTeams() {
+        const qty = Math.max(2, Math.min(8, parseInt(document.getElementById('teams-qty').value) || 2));
+        const container = document.getElementById('teams-names-inputs');
+        const oldNames = teams.map(t => t.name);
+        teams = [];
+        container.innerHTML = '';
+
+        for (let i = 0; i < qty; i++) {
+            const defaultName = oldNames[i] || `Equipe ${i + 1}`;
+            teams.push({ name: defaultName, color: TEAM_COLORS[i % TEAM_COLORS.length], members: [] });
+
+            const row = document.createElement('div');
+            row.className = 'team-name-input';
+            
+            const dot = document.createElement('span');
+            dot.style.background = teams[i].color;
+            
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.value = defaultName;
+            inp.dataset.idx = i;
+            inp.addEventListener('input', function () {
+                teams[this.dataset.idx].name = this.value || `Equipe ${parseInt(this.dataset.idx)+1}`;
+                renderTeamsBoard();
+                renderNamesHistory();
+            });
+            
+            row.appendChild(dot);
+            row.appendChild(inp);
+            container.appendChild(row);
+        }
+        renderTeamsBoard();
+        teamsBoard.classList.add('visible');
+    }
+    
+    function renderTeamsBoard() {
+        if (teams.length === 0) return;
+        teamsGrid.innerHTML = '';
+        teams.forEach(team => {
+            const card = document.createElement('div');
+            card.className = 'team-card';
+
+            const header = document.createElement('div');
+            header.className = 'team-card-header';
+            header.style.background = team.color;
+            header.innerHTML = `<span>${escapeHtml(team.name)}</span><span class="team-count">${team.members.length}</span>`;
+
+            const body = document.createElement('div');
+            body.className = 'team-card-body';
+            if (team.members.length === 0) {
+                body.innerHTML = '<div class="team-empty">Nenhum membro ainda</div>';
+            } else {
+                team.members.forEach(m => {
+                    const el = document.createElement('div');
+                    el.className = 'team-member';
+                    el.textContent = m;
+                    body.appendChild(el);
+                });
+            }
+
+            card.appendChild(header);
+            card.appendChild(body);
+            teamsGrid.appendChild(card);
+        });
+    }
+    
+    function showAssignBar(name) {
+        if (!document.getElementById('teams-enable').checked || teams.length === 0) return;
+        lastDrawnName = name;
+        teamChips.innerHTML = '';
+        teams.forEach((team, idx) => {
+            const chip = document.createElement('button');
+            chip.className = 'team-chip';
+            chip.style.background = team.color;
+            chip.textContent = team.name;
+            chip.onclick = () => assignToTeam(idx);
+            teamChips.appendChild(chip);
+        });
+        assignBar.classList.add('visible');
+    }
+    
+    function assignToTeam(teamIdx) {
+        if (lastDrawnName === null) return;
+        teams[teamIdx].members.push(lastDrawnName);
+        
+        // Atualiza o histórico com a informação da equipe
+        const entry = namesHistoryList.find(h => h.value === lastDrawnName && h.team === null);
+        if (entry) {
+            entry.team = teamIdx;
+            entry.teamName = teams[teamIdx].name;
+            entry.teamColor = teams[teamIdx].color;
+        }
+        renderNamesHistory();
+        renderTeamsBoard();
+        assignBar.classList.remove('visible');
+        lastDrawnName = null;
+    }
+    
+    function resetTeams() {
+        teams.forEach(t => t.members = []);
+        namesHistoryList.forEach(h => { h.team = null; h.teamName = null; h.teamColor = null; });
+        renderTeamsBoard();
+        renderNamesHistory();
+    }
+    
+    // ========== FUNÇÕES DE HISTÓRICO (INDEPENDENTES) ==========
+    function renderNamesHistory() {
+        historyNomesContainer.innerHTML = '';
+        if (namesHistoryList.length === 0) {
+            historyNomesContainer.innerHTML = '<div class="empty-history">Nenhum nome sorteado ainda</div>';
+            return;
+        }
+        const reversed = [...namesHistoryList].reverse();
+        reversed.forEach((entry, idx) => {
+            const position = namesHistoryList.length - idx;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'history-item';
+            itemDiv.innerHTML = `
+                <span class="num">${position}</span>
+                <span class="val">${escapeHtml(entry.value)}</span>
+                ${entry.teamName ? `<span class="team-tag" style="background:${entry.teamColor}">${escapeHtml(entry.teamName)}</span>` : ''}
+            `;
+            historyNomesContainer.appendChild(itemDiv);
+        });
+    }
+    
+    function renderNumbersHistory() {
+        historyNumerosContainer.innerHTML = '';
+        if (numbersHistoryList.length === 0) {
+            historyNumerosContainer.innerHTML = '<div class="empty-history">Nenhum número sorteado ainda</div>';
+            return;
+        }
+        const reversed = [...numbersHistoryList].reverse();
+        reversed.forEach((entry, idx) => {
+            const position = numbersHistoryList.length - idx;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'history-item';
+            let displayValue = '';
+            if (Array.isArray(entry)) {
+                displayValue = entry.join(' · ');
+            } else {
+                displayValue = entry.toString();
+            }
+            itemDiv.innerHTML = `
+                <span class="num">${position}</span>
+                <span class="val">${escapeHtml(displayValue)}</span>
+            `;
+            historyNumerosContainer.appendChild(itemDiv);
+        });
+    }
+    
+    function updateOriginalNames() {
+        const rawText = document.getElementById('entries-nomes').value.trim();
+        if (rawText === '') {
+            originalNamesArray = [];
+            return;
+        }
+        originalNamesArray = rawText.split(/[\n,]+/).map(s => s.trim()).filter(s => s !== '');
+    }
+    
+    // ========== SORTEIO DE NOMES ==========
+    async function drawNames() {
+        if (isDrawingNames) return;
+        
+        updateOriginalNames();
+        if (originalNamesArray.length === 0) {
+            alert('Por favor, adicione pelo menos um nome!');
+            return;
+        }
+        
+        const useUnique = document.getElementById('unique-nomes').checked;
+        const useTimer = document.getElementById('timer-nomes').checked;
+        const timerSecs = parseInt(document.getElementById('timer-value-nomes').value) || 5;
+        
+        let availableNames = useUnique ? originalNamesArray.filter(n => !usedNamesSet.includes(n)) : [...originalNamesArray];
+        if (availableNames.length === 0) {
+            alert('Todos os nomes já foram sorteados! Limpe o histórico ou desative a opção.');
+            return;
+        }
+        
+        isDrawingNames = true;
+        resultNomesDiv.style.color = '#999';
+        resultNomesDiv.textContent = 'Sorteando...';
+        resultNomesDiv.classList.remove('animate');
+        
+        const performDraw = () => {
+            const winner = availableNames[Math.floor(Math.random() * availableNames.length)];
+            resultNomesDiv.textContent = winner;
+            resultNomesDiv.style.color = '#6200ee';
+            resultNomesDiv.classList.add('animate');
+            setTimeout(() => resultNomesDiv.classList.remove('animate'), 500);
+            
+            // Adiciona ao histórico
+            namesHistoryList.unshift({ value: winner, team: null, teamName: null, teamColor: null });
+            if (useUnique) usedNamesSet.push(winner);
+            renderNamesHistory();
+            
+            if (document.getElementById('teams-enable').checked && teams.length > 0) {
+                showAssignBar(winner);
+            }
+            isDrawingNames = false;
+        };
+        
+        if (useTimer) {
+            await runCountdown(resultNomesDiv, timerSecs);
+            performDraw();
+        } else {
+            await runQuickAnimationNames(availableNames);
+            performDraw();
+        }
+    }
+    
+    async function runQuickAnimationNames(namePool) {
+        return new Promise((resolve) => {
+            let ticks = 0;
+            const maxTicks = 18;
+            const interval = setInterval(() => {
+                if (namePool.length > 0) {
+                    resultNomesDiv.textContent = namePool[Math.floor(Math.random() * namePool.length)];
+                }
+                ticks++;
+                if (ticks >= maxTicks) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 55);
+        });
+    }
+    
+    // ========== SORTEIO DE NÚMEROS ==========
+    async function drawNumbers() {
+        if (isDrawingNumbers) return;
+        
+        let numMin = parseInt(document.getElementById('num-min').value) || 1;
+        let numMax = parseInt(document.getElementById('num-max').value) || 100;
+        let numQty = parseInt(document.getElementById('num-qty').value) || 1;
+        
+        if (numMin > numMax) { alert('Valor mínimo não pode ser maior que o máximo!'); return; }
+        if (numQty < 1) numQty = 1;
+        
+        const useUnique = document.getElementById('unique-numeros').checked;
+        const useTimer = document.getElementById('timer-numeros').checked;
+        const timerSecs = parseInt(document.getElementById('timer-value-numeros').value) || 5;
+        
+        if (useUnique) {
+            const availableCount = (numMax - numMin + 1) - usedNumbersArray.filter(n => n >= numMin && n <= numMax).length;
+            if (availableCount <= 0) {
+                alert(`Todos os números entre ${numMin} e ${numMax} já foram sorteados!`);
+                return;
+            }
+            if (numQty > availableCount) {
+                alert(`Apenas ${availableCount} números únicos restam. Reduza a quantidade.`);
+                return;
+            }
+        }
+        
+        isDrawingNumbers = true;
+        resultNumerosDiv.style.color = '#999';
+        resultNumerosDiv.textContent = 'Sorteando...';
+        resultNumerosDiv.classList.remove('animate');
+        
+        const performDraw = () => {
+            let winners = [];
+            if (useUnique) {
+                let pool = [];
+                for (let i = numMin; i <= numMax; i++) {
+                    if (!usedNumbersArray.includes(i)) pool.push(i);
+                }
+                for (let i = 0; i < numQty && pool.length > 0; i++) {
+                    const randIndex = Math.floor(Math.random() * pool.length);
+                    winners.push(pool[randIndex]);
+                    usedNumbersArray.push(pool[randIndex]);
+                    pool.splice(randIndex, 1);
+                }
+            } else {
+                for (let i = 0; i < numQty; i++) {
+                    winners.push(Math.floor(Math.random() * (numMax - numMin + 1)) + numMin);
+                }
+            }
+            
+            const resultText = winners.length === 1 ? winners[0].toString() : winners.join('  •  ');
+            resultNumerosDiv.textContent = resultText;
+            resultNumerosDiv.style.color = '#6200ee';
+            resultNumerosDiv.classList.add('animate');
+            setTimeout(() => resultNumerosDiv.classList.remove('animate'), 500);
+            
+            // Adiciona ao histórico de números
+            if (winners.length === 1) {
+                numbersHistoryList.unshift(winners[0]);
+            } else {
+                numbersHistoryList.unshift([...winners]);
+            }
+            renderNumbersHistory();
+            isDrawingNumbers = false;
+        };
+        
+        if (useTimer) {
+            await runCountdown(resultNumerosDiv, timerSecs);
+            performDraw();
+        } else {
+            await runQuickAnimationNumbers(numMin, numMax);
+            performDraw();
+        }
+    }
+    
+    async function runQuickAnimationNumbers(minVal, maxVal) {
+        return new Promise((resolve) => {
+            let ticks = 0;
+            const maxTicks = 18;
+            const interval = setInterval(() => {
+                resultNumerosDiv.textContent = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                ticks++;
+                if (ticks >= maxTicks) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 55);
+        });
+    }
+    
+    async function runCountdown(element, seconds) {
+        return new Promise((resolve) => {
+            let count = seconds;
+            element.textContent = count;
+            const interval = setInterval(() => {
+                count--;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    resolve();
+                } else {
+                    element.textContent = count;
+                }
+            }, 1000);
+        });
+    }
+    
+    // ========== LIMPAR HISTÓRICOS INDEPENDENTES ==========
+    function clearNamesHistory() {
+        namesHistoryList = [];
+        usedNamesSet = [];
+        renderNamesHistory();
+        resultNomesDiv.textContent = '--';
+        if (document.getElementById('teams-enable').checked && teams.length > 0) {
+            teams.forEach(t => t.members = []);
+            renderTeamsBoard();
+        }
+        assignBar.classList.remove('visible');
+        lastDrawnName = null;
+    }
+    
+    function clearNumbersHistory() {
+        numbersHistoryList = [];
+        usedNumbersArray = [];
+        renderNumbersHistory();
+        resultNumerosDiv.textContent = '--';
+    }
+    
+    // ========== SWITCH DE ABAS ==========
+    function switchTab(tabName, btnElement) {
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        btnElement.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById('content-' + tabName).classList.add('active');
+    }
+    
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ========== INICIALIZAÇÃO ==========
+    function init() {
+        // Listeners dos checkboxes
+        document.getElementById('timer-nomes').addEventListener('change', function(e) {
+            document.getElementById('timer-config-nomes').classList.toggle('show', e.target.checked);
+        });
+        document.getElementById('timer-numeros').addEventListener('change', function(e) {
+            document.getElementById('timer-config-numeros').classList.toggle('show', e.target.checked);
+        });
+        document.getElementById('teams-enable').addEventListener('change', function(e) {
+            document.getElementById('teams-config').classList.toggle('show', e.target.checked);
+            if (e.target.checked && teams.length === 0) applyTeams();
+            if (!e.target.checked) {
+                assignBar.classList.remove('visible');
+                teamsBoard.classList.remove('visible');
+            } else {
+                renderTeamsBoard();
+            }
+        });
+        
+        // Dados iniciais
+        const defaultNames = "Ana Carolina\nBruno Mendes\nCarla Souza\nDaniel Oliveira\nElisa Ferreira";
+        document.getElementById('entries-nomes').value = defaultNames;
+        updateOriginalNames();
+        
+        renderNamesHistory();
+        renderNumbersHistory();
+        
+        document.getElementById('entries-nomes').addEventListener('input', updateOriginalNames);
+    }
+    
+    // Expor funções globalmente
+    window.switchTab = switchTab;
+    window.drawNames = drawNames;
+    window.drawNumbers = drawNumbers;
+    window.clearNamesHistory = clearNamesHistory;
+    window.clearNumbersHistory = clearNumbersHistory;
+    window.applyTeams = applyTeams;
+    window.resetTeams = resetTeams;
+    
+    init();
+</script>
+</body>
+</html>
